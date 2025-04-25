@@ -15,22 +15,44 @@ public class PlayerController : MonoBehaviour
     [SerializeField]private float jumpForce = 5.0f;
     private bool isOnGround = false;
 
+    //카메라 관련 변수
+    private Camera myCamera;
+
+    private float rotX = 0.0f;
+    private float camRotSpeed_x = 10.0f;
+    private float camRotSpeed_y = 5.0f;
+
+
     private void Awake()
     {
         myRigid = GetComponent<Rigidbody>();
         myCol = GetComponent<Collider>();
+        myCamera = Camera.main;
+        rotX = myCamera.transform.localRotation.eulerAngles.x;
     }
 
 
     private void Update()
     {
         TryPlayerMovement();
+        TryPlayerRotate();
         TryPlayerJump();
+
     }
 
     private void TryPlayerMovement()
     {
         GetPlayerMovement();
+    }
+
+    private void TryPlayerRotate()
+    {
+        transform.Rotate(Vector3.up, Input.mousePositionDelta.x * camRotSpeed_x * Time.deltaTime);
+
+        rotX -= Input.mousePositionDelta.y * camRotSpeed_y * Time.deltaTime;
+        rotX = Mathf.Clamp(rotX, -4.0f, 27.0f);
+
+        myCamera.transform.localRotation = Quaternion.Euler(rotX, 0.0f, 0.0f);
     }
 
 
