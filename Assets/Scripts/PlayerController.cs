@@ -1,4 +1,5 @@
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -31,9 +32,23 @@ public class PlayerController : MonoBehaviour
         rotX = myCamera.transform.localRotation.eulerAngles.x;
     }
 
+    private void Start()
+    {
+        Cursor.visible = false;
+    }
+
 
     private void Update()
     {
+        if (Input.GetMouseButtonDown(0))
+        {
+            Cursor.visible = false;
+        }
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Cursor.visible = true;
+        }
+
         TryPlayerMovement();
         TryPlayerRotate();
         TryPlayerJump();
