@@ -10,21 +10,7 @@ public class BasicEnemy : MonoBehaviour
     [SerializeField] private Animator myAnim;
 
     //적 스테이터스
-    [SerializeField] private float moveSpeed = 4.0f;
-    [SerializeField] private float attackRange = 2.0f;
-
-    //공격관련
-    private float nowAtkCoolTime = 1.0f;
-    private GameObject detectedObj = null;
-
-    public float NowAtkCoolTime {
-        get { return nowAtkCoolTime; }
-        private set
-        {
-            nowAtkCoolTime = (value < maxAtkCoolTime ? value : maxAtkCoolTime);
-        } 
-    }
-    public float maxAtkCoolTime = 2.0f;
+    [SerializeField] private CharacterStatus myStatus;
 
     //플레이어
     [SerializeField] private GameObject player;
@@ -33,6 +19,7 @@ public class BasicEnemy : MonoBehaviour
     {
         myAgent = GetComponent<NavMeshAgent>();
         myAnim = GetComponent<Animator>();
+        myStatus = GetComponent<CharacterStatus>();
         player = GameObject.FindGameObjectWithTag("Player");
     }
 
@@ -43,14 +30,13 @@ public class BasicEnemy : MonoBehaviour
 
     private void InitiateStatus()
     {
-        myAgent.speed = moveSpeed;
+        myAgent.speed = myStatus.MoveSpeed;
     }
 
     void Update()
     {
         MoveTowardsPlayer();
-        NowAtkCoolTime += Time.deltaTime;        
-        if(myAgent.remainingDistance < attackRange)
+        if(myAgent.remainingDistance < myStatus.AttackRange)
         {
             FaceTowards();
         }
@@ -73,10 +59,10 @@ public class BasicEnemy : MonoBehaviour
 
     protected virtual void TryAttack()
     {
-        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, attackRange))
+        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, myStatus.AttackRange))
         {
 
-            if(hit.transform.CompareTag("Player") && nowAtkCoolTime >= maxAtkCoolTime)
+            if(hit.transform.CompareTag("Player") && myStatus.CanAttack())
             {
                 Attack(hit.rigidbody.gameObject);
             }
@@ -86,7 +72,7 @@ public class BasicEnemy : MonoBehaviour
     protected virtual void Attack(GameObject target)
     {
         Debug.Log(target.name +" 검출");
-        nowAtkCoolTime = 0.0f;
+        myStatus.NowAttackDelay = 0.0f;
         myAnim.SetTrigger("AttackTrigger");
 
     }

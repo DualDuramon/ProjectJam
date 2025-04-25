@@ -8,20 +8,26 @@ public class PlayerController : MonoBehaviour
     private Rigidbody myRigid;
     [SerializeField]private Collider myCol;
 
+    //플레이어 스테이터스
+    [SerializeField] CharacterStatus myStatus;
+
     //이동,점프 관련 변수
     private Vector3 moveInput = Vector3.zero;
-    [SerializeField]private float moveSpeed = 5.0f;
 
     //점프 관련 변수
-    [SerializeField]private float jumpForce = 5.0f;
     private bool isOnGround = false;
 
     //카메라 관련 변수
     private Camera myCamera;
 
     private float rotX = 0.0f;
-    private float camRotSpeed_x = 10.0f;
-    private float camRotSpeed_y = 5.0f;
+    [SerializeField]private float camRotSpeed_x = 10.0f;
+    [SerializeField]private float camRotSpeed_y = 5.0f;
+
+    //공격 관련 변수
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private MuzzleController bulletMuzzle;
+    [SerializeField] private Transform bulletPos;
 
 
     private void Awake()
@@ -30,7 +36,7 @@ public class PlayerController : MonoBehaviour
         myCol = GetComponent<Collider>();
         myCamera = Camera.main;
         rotX = myCamera.transform.localRotation.eulerAngles.x;
-
+        myStatus = GetComponent<CharacterStatus>();
     }
 
     private void OnEnable()
@@ -46,23 +52,21 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Cursor.visible = false;
-        }
-        else if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
-
         TryPlayerMovement();
         TryPlayerRotate();
         TryPlayerJump();
+        TryShootBullet();
 
     }
 
@@ -87,22 +91,22 @@ public class PlayerController : MonoBehaviour
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.z = Input.GetAxisRaw("Vertical");
 
-        transform.Translate(moveInput * moveSpeed * Time.deltaTime);
+        transform.Translate(moveInput * myStatus.MoveSpeed * Time.deltaTime);
     }
 
     private void TryPlayerJump()
     {
         CheckOnGround();
-        GetPlayerJump();
-    }
-
-    private void GetPlayerJump()
-    {
         if (isOnGround && Input.GetButtonDown("Jump"))
         {
-            myRigid.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isOnGround = false;
+            PlayerJump();
         }
+    }
+
+    private void PlayerJump()
+    {
+        myRigid.AddForce(Vector3.up * myStatus.JumpForce, ForceMode.Impulse);
+        isOnGround = false;
     }
     private void CheckOnGround()
     {
@@ -111,6 +115,21 @@ public class PlayerController : MonoBehaviour
             isOnGround = Physics.Raycast(myCol.bounds.center, Vector3.down, 1.2f);
         }
         
+    }
+
+    private void TryShootBullet()
+    {
+        if (Input.GetMouseButton(0)&& myStatus.CanAttack())
+        {
+            ShootBullet();
+            myStatus.NowAttackDelay = 0.0f;
+        }
+    }
+
+    private void ShootBullet()
+    {
+        bulletMuzzle.PlayMuzzleFlash();
+        Instantiate(bulletPrefab, bulletPos.position, bulletPos.rotation);
     }
 
     private void OnDrawGizmos()
