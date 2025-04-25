@@ -30,6 +30,17 @@ public class PlayerController : MonoBehaviour
         myCol = GetComponent<Collider>();
         myCamera = Camera.main;
         rotX = myCamera.transform.localRotation.eulerAngles.x;
+
+    }
+
+    private void OnEnable()
+    {
+        InitiateStatus();
+    }
+
+    private void InitiateStatus()
+    {
+        //ReferenceManager.Instance.Player = gameObject; //ReferenceManager에 Player를 등록한다.
     }
 
     private void Start()
