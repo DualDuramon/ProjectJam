@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
@@ -62,7 +63,7 @@ public class BasicEnemy : MonoBehaviour
         if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, myStatus.AttackRange))
         {
 
-            if(hit.transform.CompareTag("Player") && myStatus.CanAttack())
+            if(hit.transform.CompareTag("Player") && myStatus.CanAttack() && !hit.transform.GetComponent<CharacterStatus>().IsDead)
             {
                 Attack(hit.rigidbody.gameObject);
             }
@@ -72,6 +73,8 @@ public class BasicEnemy : MonoBehaviour
     protected virtual void Attack(GameObject target)
     {
         Debug.Log(target.name +" ∞À√‚");
+
+        target.GetComponent<CharacterStatus>().TakeDamage(myStatus.AttackDamage);
         myStatus.NowAttackDelay = 0.0f;
         myAnim.SetTrigger("AttackTrigger");
 

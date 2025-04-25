@@ -65,11 +65,14 @@ public class PlayerController : MonoBehaviour
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
         }
-        TryPlayerMovement();
-        TryPlayerRotate();
-        TryPlayerJump();
-        TryReload();
-        TryShootBullet();
+        if (!myStatus.IsDead)
+        {
+            TryPlayerMovement();
+            TryPlayerRotate();
+            TryPlayerJump();
+            TryReload();
+            TryShootBullet();
+        }
 
     }
 
@@ -120,8 +123,7 @@ public class PlayerController : MonoBehaviour
         if (!isOnGround)
         {
             isOnGround = Physics.Raycast(myCol.bounds.center, Vector3.down, 1.2f);
-        }
-        
+        }    
     }
 
     private void TryShootBullet()
@@ -149,10 +151,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
+    public void DeadSeqControl()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(myCol.bounds.center, Vector3.down * 1.2f);
+        myAnim.SetTrigger("Dead");
     }
-
 }

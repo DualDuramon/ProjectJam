@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class CharacterStatus : MonoBehaviour
 {
+    //기본 컴포넌트들
+
     //스테이터스
     [SerializeField] private float hp = 100.0f;
     [SerializeField] private float maxHp = 100.0f;
@@ -13,6 +15,9 @@ public class CharacterStatus : MonoBehaviour
     [SerializeField] private float jumpForce = 5.0f;
 
     [SerializeField] private float attackRange = 2.0f;
+    [SerializeField] private float attackDamage = 10.0f;
+
+    [SerializeField] private bool isDead = true;
 
     public float Hp { get { return hp; } set { hp = value < 0 ? 0 : value; } }
     public float MaxHp { get { return maxHp; } set { maxHp = value; } }
@@ -20,6 +25,8 @@ public class CharacterStatus : MonoBehaviour
     public float MoveSpeed { get { return moveSpeed; } set { moveSpeed = value; } }
     public float JumpForce { get { return jumpForce; } set { jumpForce = value; } }
     public float AttackRange { get { return attackRange; } set { attackRange = value; } }
+    public float AttackDamage { get { return attackDamage; } set { attackDamage = value; } }
+    public bool IsDead { get { return isDead; } set { isDead = value; } }
 
     private void Update()
     {
@@ -34,5 +41,25 @@ public class CharacterStatus : MonoBehaviour
     public virtual bool CanAttack()
     {
         return NowAttackDelay >= maxAttackDelay;
+    }
+
+    public void TakeDamage(float damage)
+    {
+        Hp -= damage;
+        if (Hp <= 0)
+        {
+            GetDie();
+        }
+    }
+
+    protected virtual void GetDie()
+    {
+        IsDead = true;
+    }
+
+    protected virtual void Revive()
+    {
+        IsDead = false;
+        Hp = MaxHp;
     }
 }
