@@ -73,9 +73,10 @@ public class BasicEnemy : MonoBehaviour
 
     protected virtual void TryAttack()
     {
-        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, attackRange, LayerMask.GetMask("Player")))
+        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, attackRange))
         {
-            if(nowAtkCoolTime >= maxAtkCoolTime)
+
+            if(hit.transform.CompareTag("Player") && nowAtkCoolTime >= maxAtkCoolTime)
             {
                 Attack(hit.rigidbody.gameObject);
             }
