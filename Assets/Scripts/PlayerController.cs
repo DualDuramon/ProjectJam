@@ -7,9 +7,10 @@ public class PlayerController : MonoBehaviour
     //기본 컴포넌트들
     private Rigidbody myRigid;
     [SerializeField]private Collider myCol;
+    private Animator myAnim;
 
     //플레이어 스테이터스
-    [SerializeField] CharacterStatus myStatus;
+    [SerializeField] PlayerStatus myStatus;
 
     //이동,점프 관련 변수
     private Vector3 moveInput = Vector3.zero;
@@ -34,9 +35,10 @@ public class PlayerController : MonoBehaviour
     {
         myRigid = GetComponent<Rigidbody>();
         myCol = GetComponent<Collider>();
+        myAnim = GetComponent<Animator>();
         myCamera = Camera.main;
         rotX = myCamera.transform.localRotation.eulerAngles.x;
-        myStatus = GetComponent<CharacterStatus>();
+        myStatus = GetComponent<PlayerStatus>();
     }
 
     private void OnEnable()
@@ -66,6 +68,7 @@ public class PlayerController : MonoBehaviour
         TryPlayerMovement();
         TryPlayerRotate();
         TryPlayerJump();
+        TryReload();
         TryShootBullet();
 
     }
@@ -92,6 +95,9 @@ public class PlayerController : MonoBehaviour
         moveInput.z = Input.GetAxisRaw("Vertical");
 
         transform.Translate(moveInput * myStatus.MoveSpeed * Time.deltaTime);
+
+        myAnim.SetFloat("speedX", moveInput.x);
+        myAnim.SetFloat("speedZ", moveInput.z);
     }
 
     private void TryPlayerJump()
@@ -107,6 +113,7 @@ public class PlayerController : MonoBehaviour
     {
         myRigid.AddForce(Vector3.up * myStatus.JumpForce, ForceMode.Impulse);
         isOnGround = false;
+        myAnim.SetTrigger("Jump");
     }
     private void CheckOnGround()
     {
@@ -123,13 +130,23 @@ public class PlayerController : MonoBehaviour
         {
             ShootBullet();
             myStatus.NowAttackDelay = 0.0f;
+            myAnim.SetTrigger("Fire");
         }
     }
 
     private void ShootBullet()
     {
+        myStatus.DecreaseBullet(1);
         bulletMuzzle.PlayMuzzleFlash();
         Instantiate(bulletPrefab, bulletPos.position, bulletPos.rotation);
+    }
+
+    private void TryReload()
+    {
+        if(Input.GetKeyDown(KeyCode.R)&& myStatus.NowBullets < myStatus.MaxBullets)
+        {
+            myAnim.SetTrigger("Reload");
+        }
     }
 
     private void OnDrawGizmos()
