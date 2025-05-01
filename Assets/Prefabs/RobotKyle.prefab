@@ -2340,7 +2340,8 @@ GameObject:
   - component: {fileID: 4648678977501642580}
   - component: {fileID: 8630913640623785573}
   - component: {fileID: 2255166868773654515}
-  m_Layer: 8
+  - component: {fileID: 6806650653049598458}
+  m_Layer: 0
   m_Name: RobotKyle
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -2355,7 +2356,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4942979638990149750}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.68, y: 0, z: 27.77}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2400,10 +2401,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   myAgent: {fileID: 0}
   myAnim: {fileID: 0}
-  moveSpeed: 4
-  attackRange: 1.5
-  maxAtkCoolTime: 2
+  myCol: {fileID: 0}
+  myRigid: {fileID: 0}
+  myStatus: {fileID: 0}
   player: {fileID: 0}
+  score: 100
 --- !u!195 &4648678977501642580
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2476,6 +2478,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6806650653049598458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4942979638990149750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdead5c5e89885041b830a8eb63c731c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hp: 20
+  maxHp: 20
+  nowAttackDelay: 0
+  maxAttackDelay: 3
+  moveSpeed: 5
+  jumpForce: 5
+  attackRange: 2
+  attackDamage: 10
+  isDead: 0
 --- !u!1 &5166760000379649489
 GameObject:
   m_ObjectHideFlags: 0

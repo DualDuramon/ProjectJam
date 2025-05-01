@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
+using UnityEditor.Analytics;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -8,31 +10,25 @@ public class BasicEnemy : MonoBehaviour
     //기본 컴포넌트들
     [SerializeField] private NavMeshAgent myAgent;
     [SerializeField] private Animator myAnim;
+    [SerializeField] private Collider myCol;
+    [SerializeField] private Rigidbody myRigid;
 
     //적 스테이터스
-    [SerializeField] private float moveSpeed = 4.0f;
-    [SerializeField] private float attackRange = 2.0f;
-
-    //공격관련
-    private float nowAtkCoolTime = 1.0f;
-    private GameObject detectedObj = null;
-
-    public float NowAtkCoolTime {
-        get { return nowAtkCoolTime; }
-        private set
-        {
-            nowAtkCoolTime = (value < maxAtkCoolTime ? value : maxAtkCoolTime);
-        } 
-    }
-    public float maxAtkCoolTime = 2.0f;
+    [SerializeField] private CharacterStatus myStatus;
 
     //플레이어
     [SerializeField] private GameObject player;
+
+    //그외
+    [SerializeField] private int score;
 
     private void Awake()
     {
         myAgent = GetComponent<NavMeshAgent>();
         myAnim = GetComponent<Animator>();
+        myStatus = GetComponent<CharacterStatus>();
+        myCol = GetComponent<Collider>();
+        myRigid = GetComponent<Rigidbody>();
         player = GameObject.FindGameObjectWithTag("Player");
     }
 
@@ -43,18 +39,20 @@ public class BasicEnemy : MonoBehaviour
 
     private void InitiateStatus()
     {
-        myAgent.speed = moveSpeed;
+        myAgent.speed = myStatus.MoveSpeed;
     }
 
     void Update()
     {
-        MoveTowardsPlayer();
-        NowAtkCoolTime += Time.deltaTime;        
-        if(myAgent.remainingDistance < attackRange)
+        if (!myStatus.IsDead)
         {
-            FaceTowards();
+            MoveTowardsPlayer();
+            if (myAgent.remainingDistance < myStatus.AttackRange)
+            {
+                FaceTowards();
+            }
+            TryAttack();
         }
-        TryAttack();
     }
 
     private void MoveTowardsPlayer()
@@ -73,10 +71,10 @@ public class BasicEnemy : MonoBehaviour
 
     protected virtual void TryAttack()
     {
-        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, attackRange))
+        if(Physics.Raycast(transform.position + Vector3.up, transform.forward, out RaycastHit hit, myStatus.AttackRange))
         {
 
-            if(hit.transform.CompareTag("Player") && nowAtkCoolTime >= maxAtkCoolTime)
+            if(hit.transform.CompareTag("Player") && myStatus.CanAttack() && !hit.transform.GetComponent<CharacterStatus>().IsDead)
             {
                 Attack(hit.rigidbody.gameObject);
             }
@@ -85,9 +83,35 @@ public class BasicEnemy : MonoBehaviour
 
     protected virtual void Attack(GameObject target)
     {
-        Debug.Log(target.name +" 검출");
-        nowAtkCoolTime = 0.0f;
+
+        target.GetComponent<CharacterStatus>().TakeDamage(myStatus.AttackDamage);
+        myStatus.NowAttackDelay = 0.0f;
         myAnim.SetTrigger("AttackTrigger");
 
+    }
+
+    public void TakeDamage(float dmg)
+    {
+        myStatus.TakeDamage(dmg);
+        if(myStatus.IsDead)
+        {
+            myAgent.isStopped = true;
+            myAgent.enabled = false;
+            myCol.enabled = false;
+            myRigid.isKinematic = true;
+            GameManager.Instance.AddScore(score);
+            myAnim.SetBool("IsDead", true);
+            Destroy(gameObject, 3.0f); //3초 후에 적 오브젝트 삭제
+        }
+    }
+
+    public void Revive()
+    {
+        myStatus.Revive();
+        myAgent.isStopped = false;
+        myAgent.enabled = true;
+        myCol.enabled = true;
+        myRigid.isKinematic = false;
+        myAnim.SetBool("IsDead", false);
     }
 }

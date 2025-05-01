@@ -7,30 +7,38 @@ public class PlayerController : MonoBehaviour
     //기본 컴포넌트들
     private Rigidbody myRigid;
     [SerializeField]private Collider myCol;
+    private Animator myAnim;
+
+    //플레이어 스테이터스
+    [SerializeField] PlayerStatus myStatus;
 
     //이동,점프 관련 변수
     private Vector3 moveInput = Vector3.zero;
-    [SerializeField]private float moveSpeed = 5.0f;
 
     //점프 관련 변수
-    [SerializeField]private float jumpForce = 5.0f;
     private bool isOnGround = false;
 
     //카메라 관련 변수
     private Camera myCamera;
 
     private float rotX = 0.0f;
-    private float camRotSpeed_x = 10.0f;
-    private float camRotSpeed_y = 5.0f;
+    [SerializeField]private float camRotSpeed_x = 10.0f;
+    [SerializeField]private float camRotSpeed_y = 5.0f;
+
+    //공격 관련 변수
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private MuzzleController bulletMuzzle;
+    [SerializeField] private Transform bulletPos;
 
 
     private void Awake()
     {
         myRigid = GetComponent<Rigidbody>();
         myCol = GetComponent<Collider>();
+        myAnim = GetComponent<Animator>();
         myCamera = Camera.main;
         rotX = myCamera.transform.localRotation.eulerAngles.x;
-
+        myStatus = GetComponent<PlayerStatus>();
     }
 
     private void OnEnable()
@@ -43,27 +51,28 @@ public class PlayerController : MonoBehaviour
         //ReferenceManager.Instance.Player = gameObject; //ReferenceManager에 Player를 등록한다.
     }
 
-    private void Start()
-    {
-        Cursor.visible = false;
-    }
-
-
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (!myStatus.IsDead)
         {
-            Cursor.visible = false;
-        }
-        else if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Cursor.visible = true;
+            TryPlayerMovement();
+            TryPlayerRotate();
+            TryPlayerJump();
+            TryReload();
+            TryShootBullet();
         }
 
-        TryPlayerMovement();
-        TryPlayerRotate();
-        TryPlayerJump();
-
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(Time.timeScale == 1.0f)
+            {
+                GameManager.Instance.HoldGame();
+            }
+            else
+            {
+                GameManager.Instance.StartGame();
+            }
+        }
     }
 
     private void TryPlayerMovement()
@@ -87,36 +96,65 @@ public class PlayerController : MonoBehaviour
         moveInput.x = Input.GetAxisRaw("Horizontal");
         moveInput.z = Input.GetAxisRaw("Vertical");
 
-        transform.Translate(moveInput * moveSpeed * Time.deltaTime);
+        transform.Translate(moveInput * myStatus.MoveSpeed * Time.deltaTime);
+
+        myAnim.SetFloat("speedX", moveInput.x);
+        myAnim.SetFloat("speedZ", moveInput.z);
     }
 
     private void TryPlayerJump()
     {
         CheckOnGround();
-        GetPlayerJump();
-    }
-
-    private void GetPlayerJump()
-    {
         if (isOnGround && Input.GetButtonDown("Jump"))
         {
-            myRigid.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isOnGround = false;
+            PlayerJump();
         }
+    }
+
+    private void PlayerJump()
+    {
+        myRigid.AddForce(Vector3.up * myStatus.JumpForce, ForceMode.Impulse);
+        isOnGround = false;
+        myAnim.SetTrigger("Jump");
     }
     private void CheckOnGround()
     {
         if (!isOnGround)
         {
             isOnGround = Physics.Raycast(myCol.bounds.center, Vector3.down, 1.2f);
-        }
-        
+        }    
     }
 
-    private void OnDrawGizmos()
+    private void TryShootBullet()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(myCol.bounds.center, Vector3.down * 1.2f);
+        if (Input.GetMouseButton(0)&& myStatus.CanAttack())
+        {
+            ShootBullet();
+            myStatus.NowAttackDelay = 0.0f;
+            myAnim.SetTrigger("Fire");
+        }
     }
 
+    private void ShootBullet()
+    {
+        myStatus.DecreaseBullet(1);
+        bulletMuzzle.PlayMuzzleFlash();
+        Instantiate(bulletPrefab, bulletPos.position, bulletPos.rotation);
+    }
+
+    private void TryReload()
+    {
+        if(Input.GetKeyDown(KeyCode.R) && myStatus.NowBullets < myStatus.MaxBullets && !myStatus.IsReloading)
+        {
+            myStatus.IsReloading = true;
+            myAnim.SetTrigger("Reload");
+        }
+    }
+
+    public void DeadSeqControl()
+    {
+        myAnim.SetTrigger("Dead");
+        GameManager.Instance.HoldGame();
+
+    }
 }
