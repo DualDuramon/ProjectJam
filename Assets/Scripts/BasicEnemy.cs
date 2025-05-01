@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
+using UnityEditor.Analytics;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,6 +10,8 @@ public class BasicEnemy : MonoBehaviour
     //기본 컴포넌트들
     [SerializeField] private NavMeshAgent myAgent;
     [SerializeField] private Animator myAnim;
+    [SerializeField] private Collider myCol;
+    [SerializeField] private Rigidbody myRigid;
 
     //적 스테이터스
     [SerializeField] private CharacterStatus myStatus;
@@ -16,11 +19,16 @@ public class BasicEnemy : MonoBehaviour
     //플레이어
     [SerializeField] private GameObject player;
 
+    //그외
+    [SerializeField] private int score;
+
     private void Awake()
     {
         myAgent = GetComponent<NavMeshAgent>();
         myAnim = GetComponent<Animator>();
         myStatus = GetComponent<CharacterStatus>();
+        myCol = GetComponent<Collider>();
+        myRigid = GetComponent<Rigidbody>();
         player = GameObject.FindGameObjectWithTag("Player");
     }
 
@@ -36,12 +44,15 @@ public class BasicEnemy : MonoBehaviour
 
     void Update()
     {
-        MoveTowardsPlayer();
-        if(myAgent.remainingDistance < myStatus.AttackRange)
+        if (!myStatus.IsDead)
         {
-            FaceTowards();
+            MoveTowardsPlayer();
+            if (myAgent.remainingDistance < myStatus.AttackRange)
+            {
+                FaceTowards();
+            }
+            TryAttack();
         }
-        TryAttack();
     }
 
     private void MoveTowardsPlayer()
@@ -72,11 +83,35 @@ public class BasicEnemy : MonoBehaviour
 
     protected virtual void Attack(GameObject target)
     {
-        Debug.Log(target.name +" 검출");
 
         target.GetComponent<CharacterStatus>().TakeDamage(myStatus.AttackDamage);
         myStatus.NowAttackDelay = 0.0f;
         myAnim.SetTrigger("AttackTrigger");
 
+    }
+
+    public void TakeDamage(float dmg)
+    {
+        myStatus.TakeDamage(dmg);
+        if(myStatus.IsDead)
+        {
+            myAgent.isStopped = true;
+            myAgent.enabled = false;
+            myCol.enabled = false;
+            myRigid.isKinematic = true;
+            GameManager.Instance.AddScore(score);
+            myAnim.SetBool("IsDead", true);
+            Destroy(gameObject, 3.0f); //3초 후에 적 오브젝트 삭제
+        }
+    }
+
+    public void Revive()
+    {
+        myStatus.Revive();
+        myAgent.isStopped = false;
+        myAgent.enabled = true;
+        myCol.enabled = true;
+        myRigid.isKinematic = false;
+        myAnim.SetBool("IsDead", false);
     }
 }

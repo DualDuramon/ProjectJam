@@ -9833,7 +9833,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -9878,7 +9878,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1cd9b7bef57c150448e14043050babd3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
+  speed: 30
   onHitEffectPrefab: {fileID: 4186470608034871016, guid: 34d65321a9593e945a269cde6e28f9d0, type: 3}
   myRigid: {fileID: 3990668454085796769}
 --- !u!1 &5977554717477253535

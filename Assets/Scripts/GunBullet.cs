@@ -30,14 +30,19 @@ public class GunBullet : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnCollisionEnter(Collision collision)
     {
-        if (other.CompareTag("Enemy"))
+        if (collision.transform.CompareTag("Enemy"))
         {
             //单固瘤 贸府 肺流
-            Debug.Log("利 鸥拜");
+            BasicEnemy enemyStatus = collision.transform.GetComponent<BasicEnemy>();
+            if(enemyStatus != null)
+            {
+                enemyStatus.TakeDamage(Dmg);
+            }
         }
-        Instantiate(onHitEffectPrefab, transform.position + Vector3.back*0.1f, Quaternion.identity);
+        //Instantiate(onHitEffectPrefab, transform.position + Vector3.back * 0.1f, Quaternion.identity);
+        Instantiate(onHitEffectPrefab);
         Destroy(gameObject);
     }
 }

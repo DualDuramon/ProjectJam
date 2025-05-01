@@ -43,7 +43,7 @@ public class CharacterStatus : MonoBehaviour
         return NowAttackDelay >= maxAttackDelay;
     }
 
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         Hp -= damage;
         if (Hp <= 0)
@@ -57,7 +57,7 @@ public class CharacterStatus : MonoBehaviour
         IsDead = true;
     }
 
-    protected virtual void Revive()
+    public virtual void Revive()
     {
         IsDead = false;
         Hp = MaxHp;

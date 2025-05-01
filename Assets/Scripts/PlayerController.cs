@@ -51,20 +51,8 @@ public class PlayerController : MonoBehaviour
         //ReferenceManager.Instance.Player = gameObject; //ReferenceManager에 Player를 등록한다.
     }
 
-    private void Start()
-    {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
-    }
-
-
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
         if (!myStatus.IsDead)
         {
             TryPlayerMovement();
@@ -74,6 +62,17 @@ public class PlayerController : MonoBehaviour
             TryShootBullet();
         }
 
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(Time.timeScale == 1.0f)
+            {
+                GameManager.Instance.HoldGame();
+            }
+            else
+            {
+                GameManager.Instance.StartGame();
+            }
+        }
     }
 
     private void TryPlayerMovement()
@@ -145,8 +144,9 @@ public class PlayerController : MonoBehaviour
 
     private void TryReload()
     {
-        if(Input.GetKeyDown(KeyCode.R)&& myStatus.NowBullets < myStatus.MaxBullets)
+        if(Input.GetKeyDown(KeyCode.R) && myStatus.NowBullets < myStatus.MaxBullets && !myStatus.IsReloading)
         {
+            myStatus.IsReloading = true;
             myAnim.SetTrigger("Reload");
         }
     }
@@ -154,5 +154,7 @@ public class PlayerController : MonoBehaviour
     public void DeadSeqControl()
     {
         myAnim.SetTrigger("Dead");
+        GameManager.Instance.HoldGame();
+
     }
 }
